@@ -1,66 +1,74 @@
 body {
-    background-color: #e6f7ff; /* 浅蓝色背景 */
-    font-family: Arial, sans-serif;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
+    font-family: 'Arial', sans-serif;
+    background-color: #f0f0f0;
+    color: #333;
     margin: 0;
+    padding: 0;
 }
 
 .container {
-    text-align: center;
-    background-color: white;
+    width: 90%;
+    margin: 20px auto;
     padding: 20px;
-    border-radius: 10px;
+    background-color: #fff;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    width: 80%;
-    max-width: 600px;
 }
 
 h1 {
-    color: #333;
+    text-align: center;
+    color: #555;
+}
+
+.controls {
     margin-bottom: 20px;
 }
 
-#classSelector {
+.controls button {
+    margin-right: 10px;
     padding: 10px;
-    font-size: 1em;
-    margin-bottom: 20px;
-}
-
-#startBtn {
-    padding: 10px 20px;
-    font-size: 1.2em;
-    cursor: pointer;
     background-color: #4CAF50;
     color: white;
     border: none;
-    border-radius: 5px;
+    cursor: pointer;
 }
 
-#startBtn:disabled {
-    background-color: #ccc;
-    cursor: not-allowed;
+.controls button:hover {
+    background-color: #45a049;
 }
 
-#nameDisplay {
-    font-size: 3em;
-    margin: 20px 0;
-    color: #333;
-    height: 80px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+.class-selector {
+    margin-bottom: 20px;
 }
 
-#speedControl {
+table {
     width: 100%;
-    margin-top: 20px;
+    border-collapse: collapse;
 }
 
-#history {
-    margin-top: 20px;
-    font-size: 1.2em;
-    color: #666;
+table, th, td {
+    border: 1px solid #ddd;
+}
+
+th, td {
+    padding: 10px;
+    text-align: left;
+}
+
+th {
+    background-color: #4CAF50;
+    color: white;
+}
+
+tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+tr:hover {
+    background-color: #ddd;
+}
+
+button {
+    padding: 5px 10px;
+    margin: 2px;
+    cursor: pointer;
 }

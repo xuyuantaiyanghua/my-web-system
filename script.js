@@ -1,95 +1,108 @@
-const classSelector = document.getElementById('classSelector');
-const startBtn = document.getElementById('startBtn');
-const nameDisplay = document.getElementById('nameDisplay');
-const speedControl = document.getElementById('speedControl');
-const historyDisplay = document.getElementById('history');
+let currentClass = '1';
+let students = [];
 
-const classes = {
-    '1': [
-        "张皓然", "王瀚卿", "郭天骐", "沈鑫源", "柴瑀霏", "张曦媛", "姜月龙", "崔晨曦", "王之静简", "汪轩皓",
-        "肖敬严", "史雨杭", "徐歆恬", "王海鑫", "郑羽萱", "卢诗洋", "刘骁", "陈京玉", "祁昊然", "张喆",
-        "朱思静", "王泓舟", "沙雨萱", "马连想", "吴明轩", "高苗天乐", "郝义涵", "王梓晗", "龚品瑄", "李熙俊",
-        "陈梓馨", "李梓仟", "祝婕雅", "王嘉驿", "安李昊涵", "张雨乐", "刘万坤", "宋元悦"
-    ],
-    '2': [
-        "刘雨莹", "张玟玉", "付嘉祺", "谢馨怡", "司耀阳", "杨一晨", "李若琪", "马晨曦", "郑梓晨", "李芳维",
-        "皮佳涵", "吴梦琪", "安雨馨", "赵钰鑫", "王子恒", "丁寅通", "马雨皓", "李浩然", "吴绮暄", "许胜熙",
-        "王子涵", "孙宇芮", "王冬誉", "张越恩", "隗欣瑶", "穆泓宇", "王嘉晨", "张澳", "隗菁", "李牧熙",
-        "张家硕", "史航程", "韩鑫伊", "李泽雯", "刘鑫禧", "郭淼", "李铭轩"
-    ]
-};
-
-let interval;
-let history = [];
-let currentClass = '';
-let availableNames = [];
-
-classSelector.addEventListener('change', () => {
-    currentClass = classSelector.value;
-    if (currentClass) {
-        startBtn.disabled = false;
-        availableNames = [...classes[currentClass]]; // 初始化可用姓名列表
-        reset();
-    } else {
-        startBtn.disabled = true;
-    }
-});
-
-startBtn.addEventListener('click', () => {
-    if (interval) {
-        clearInterval(interval);
-        interval = null;
-        startBtn.textContent = '开始提问';
-        highlightSelectedName();
-        addToHistory(nameDisplay.textContent);
-    } else {
-        startBtn.textContent = '暂停';
-        interval = setInterval(() => {
-            if (availableNames.length === 0) {
-                availableNames = [...classes[currentClass]]; // 如果抽完一轮，重新初始化
-            }
-            const randomIndex = Math.floor(Math.random() * availableNames.length);
-            nameDisplay.textContent = availableNames[randomIndex];
-        }, 1000 / speedControl.value);
-    }
-});
-
-speedControl.addEventListener('input', () => {
-    if (interval) {
-        clearInterval(interval);
-        interval = setInterval(() => {
-            if (availableNames.length === 0) {
-                availableNames = [...classes[currentClass]];
-            }
-            const randomIndex = Math.floor(Math.random() * availableNames.length);
-            nameDisplay.textContent = availableNames[randomIndex];
-        }, 1000 / speedControl.value);
-    }
-});
-
-function highlightSelectedName() {
-    nameDisplay.style.color = 'purple';
-    nameDisplay.style.fontSize = '4em';
-    const selectedName = nameDisplay.textContent;
-    availableNames = availableNames.filter(name => name !== selectedName); // 移除已选中的姓名
+function changeClass() {
+    currentClass = document.getElementById('class-select').value;
+    loadStudents();
 }
 
-function addToHistory(name) {
-    if (history.length >= 10) {
-        history.shift();
-    }
-    history.push(name);
-    historyDisplay.textContent = '历史记录: ' + history.join(', ');
+function loadStudents() {
+    students = JSON.parse(localStorage.getItem(`class${currentClass}`)) || [];
+    renderTable();
 }
 
-function reset() {
-    clearInterval(interval);
-    interval = null;
-    startBtn.textContent = '开始提问';
-    nameDisplay.textContent = '请选择班级后开始';
-    nameDisplay.style.color = '#333';
-    nameDisplay.style.fontSize = '3em';
-    history = [];
-    historyDisplay.textContent = '历史记录：';
-    availableNames = [...classes[currentClass]];
+function saveStudents() {
+    localStorage.setItem(`class${currentClass}`, JSON.stringify(students));
 }
+
+function renderTable() {
+    const tbody = document.querySelector('#students-table tbody');
+    tbody.innerHTML = '';
+    students.forEach((student, index) => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${student.id}</td>
+            <td><input type="text" value="${student.name}" onchange="updateName(${index}, this.value)"></td>
+            <td>${student.score}</td>
+            <td>
+                <button onclick="updateScore(${index}, 1)">+1</button>
+                <button onclick="updateScore(${index}, -1)">-1</button>
+                <button onclick="customScore(${index})">自定义</button>
+                <button onclick="deleteStudent(${index})">删除</button>
+            </td>
+        `;
+        tbody.appendChild(row);
+    });
+}
+
+function addStudent() {
+    const newId = students.length + 1;
+    students.push({ id: newId, name: `学生${newId}`, score: 0 });
+    saveStudents();
+    renderTable();
+}
+
+function updateName(index, newName) {
+    students[index].name = newName;
+    saveStudents();
+}
+
+function updateScore(index, change) {
+    students[index].score += change;
+    saveStudents();
+    renderTable();
+}
+
+function customScore(index) {
+    const newScore = prompt('请输入新的积分:');
+    if (newScore !== null && !isNaN(newScore)) {
+        students[index].score = parseInt(newScore, 10);
+        saveStudents();
+        renderTable();
+    }
+}
+
+function deleteStudent(index) {
+    students.splice(index, 1);
+    saveStudents();
+    renderTable();
+}
+
+function sortStudents() {
+    students.sort((a, b) => b.score - a.score);
+    renderTable();
+}
+
+function bulkUpdate(action) {
+    const change = prompt(`请输入全班${action === 'add' ? '加分' : '减分'}的数值:`);
+    if (change !== null && !isNaN(change)) {
+        students.forEach(student => {
+            student.score += action === 'add' ? parseInt(change, 10) : -parseInt(change, 10);
+        });
+        saveStudents();
+        renderTable();
+    }
+}
+
+function exportData() {
+    const dataStr = JSON.stringify(students);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `class${currentClass}_students.json`;
+    link.click();
+}
+
+function clearAll() {
+    if (confirm('确定要一键清零所有积分吗？')) {
+        students.forEach(student => student.score = 0);
+        saveStudents();
+        renderTable();
+    }
+}
+
+// 初始化
+document.addEventListener('DOMContentLoaded', () => {
+    loadStudents();
+});
