@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>班级积分系统</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(to bottom, #f0f2f5, #d9e4f0);
+      margin: 0;
+      padding: 20px;
+      color: #333;
+    }
+    h1 {
+      text-align: center;
+      font-size: 36px;
+      color: #2c3e50;
+      margin-bottom: 20px;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+    .class-selector {
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    .class-selector button {
+      padding: 10px 20px;
+      font-size: 16px;
+      margin: 0 10px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      background: #3498db;
+      color: white;
+    }
+    .class-selector button.active {
+      background: #2980b9;
+    }
+    .student-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .student-card {
+      flex: 1 1 calc(20% - 20px);
+      padding: 15px;
+      background: #ecf0f1;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      text-align: center;
+    }
+    .student-card input {
+      width: 80%;
+      padding: 5px;
+      margin-bottom: 10px;
+      border: 1px solid #bdc3c7;
+      border-radius: 3px;
+    }
+    .student-card button {
+      padding: 5px 10px;
+      margin: 5px;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+      background: #2ecc71;
+      color: white;
+    }
+    .student-card button.minus {
+      background: #e74c3c;
+    }
+    .student-card button.custom {
+      background: #f1c40f;
+    }
+    .actions {
+      margin-top: 20px;
+      text-align: center;
+    }
+    .actions button {
+      padding: 10px 20px;
+      font-size: 16px;
+      margin: 0 10px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      background: #9b59b6;
+      color: white;
+    }
+    .actions button.export {
+      background: #27ae60;
+    }
+    .actions button.clear {
+      background: #e74c3c;
+    }
+  </style>
+</head>
+<body>
+  <h1>班级积分系统</h1>
+  <div class="container">
+    <div class="class-selector">
+      <button onclick="switchClass(1)" class="active">1班</button>
+      <button onclick="switchClass(2)">2班</button>
+    </div>
+    <div class="student-list" id="student-list"></div>
+    <div class="actions">
+      <button onclick="batchAdd(10)">全班+10</button>
+      <button onclick="batchAdd(-10)">全班-10</button>
+      <button onclick="exportData()" class="export">导出数据</button>
+      <button onclick="clearAll()" class="clear">一键清零</button>
+      <button onclick="showRanking()">积分排行榜</button>
+    </div>
+  </div>
+
+  <script>
+    let currentClass = 1;
+    let students = {
+      1: Array.from({ length: 50 }, (_, i) => ({ id: i + 1, name: `学生${i + 1}`, score: 0 })),
+      2: Array.from({ length: 50 }, (_, i) => ({ id: i + 1, name: `学生${i + 1}`, score: 0 })),
+    };
+
+    function switchClass(classId) {
+      currentClass = classId;
+      document.querySelectorAll('.class-selector button').forEach((btn, index) => {
+        btn.classList.toggle('active', index + 1 === classId);
+      });
+      renderStudents();
+    }
+
+    function renderStudents() {
+      const studentList = document.getElementById('student-list');
+      studentList.innerHTML = '';
+      students[currentClass].forEach(student => {
+        const card = document.createElement('div');
+        card.className = 'student-card';
+        card.innerHTML = `
+          <div>学号：${student.id}</div>
+          <input type="text" value="${student.name}" onchange="updateName(${student.id}, this.value)">
+          <div>积分：${student.score}</div>
+          <button onclick="addScore(${student.id}, 1)">+1</button>
+          <button onclick="addScore(${student.id}, -1)" class="minus">-1</button>
+          <button onclick="customScore(${student.id})" class="custom">自定义</button>
+        `;
+        studentList.appendChild(card);
+      });
+    }
+
+    function addScore(id, points) {
+      const student = students[currentClass].find(s => s.id === id);
+      student.score += points;
+      renderStudents();
+    }
+
+    function customScore(id) {
+      const student = students[currentClass].find(s => s.id === id);
+      const points = parseInt(prompt('请输入自定义分数：'));
+      if (!isNaN(points)) {
+        student.score += points;
+        renderStudents();
+      }
+    }
+
+    function updateName(id, newName) {
+      const student = students[currentClass].find(s => s.id === id);
+      student.name = newName;
+    }
+
+    function batchAdd(points) {
+      students[currentClass].forEach(student => student.score += points);
+      renderStudents();
+    }
+
+    function exportData() {
+      const data = JSON.stringify(students[currentClass], null, 2);
+      const blob = new Blob([data], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `class_${currentClass}_data.json`;
+      a.click();
+    }
+
+    function clearAll() {
+      students[currentClass].forEach(student => student.score = 0);
+      renderStudents();
+    }
+
+    function showRanking() {
+      const sortedStudents = [...students[currentClass]].sort((a, b) => b.score - a.score);
+      alert('积分排行榜：\n' + sortedStudents.map((s, i) => `${i + 1}. ${s.name} - ${s.score}分`).join('\n'));
+    }
+
+    // 初始化
+    switchClass(1);
+  </script>
+</body>
+</html>
